@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore;
+
 namespace NewsAggregatorApi
 {
     public class Program
@@ -12,6 +14,8 @@ namespace NewsAggregatorApi
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
+                    webBuilder.UseUrls("http://localhost:5180");
                 });
+
     }
 }

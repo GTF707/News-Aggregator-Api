@@ -1,45 +1,37 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using NewsAggregatorApi.DTO;
+using NewsAggregatorApi.Services.Interface;
 
 namespace NewsAggregatorApi.Controllers
 {
-    public class NewsSiteController : Controller
+    public class NewsSiteController : BaseController
     {
-        private readonly AppDbContext dbContext;
-        public NewsSiteController(AppDbContext dbcontext)
+        private INewsSiteService NewsSiteService;
+        public NewsSiteController(INewsSiteService newsSiteService)
         {
-            dbContext = dbcontext;
+            NewsSiteService = newsSiteService;
         }
 
         [Produces("application/json")]
         [HttpPost("Create")]
         public async Task Create(NewsSiteDTO site)
         {
-            await dbContext.AddAsync(site);
-            await dbContext.SaveChangesAsync();
+            await NewsSiteService.Create(site);
 
         }
 
         [Produces("application/json")]
-        [HttpPost("Delete")]
+        [HttpDelete("Delete")]
         public async Task Delete(long id)
         {
-            var delete = dbContext.NewsSites.Where(x => x.Id == id);
-            dbContext.Remove(delete);
-            await dbContext.SaveChangesAsync();
+           await NewsSiteService.Delete(id);
         }
 
         [Produces("application/json")]
-        [HttpPost("Update")]
+        [HttpPut("Update")]
         public async Task Update(NewsSiteDTO site)
         {
-            var update = dbContext.NewsSites.Where(x => x.Id == site.Id).FirstOrDefault();
-            update.Url = site.Url;
-            update.Name = site.Name;
-            if (update != null)
-            {
-                dbContext.NewsSites.Update(update);
-                await dbContext.SaveChangesAsync();
-            }
+            await NewsSiteService.Update(site);
         }
     }
 }

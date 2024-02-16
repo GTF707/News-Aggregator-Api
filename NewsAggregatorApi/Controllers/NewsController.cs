@@ -1,64 +1,46 @@
-﻿using Domain.DTO;
-using Domain;
+﻿using Domain;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using NewsAggregatorApi.DTO;
+using NewsAggregatorApi.Services.Interface;
 using System;
 
 namespace NewsAggregatorApi.Controllers
 {
-    public class NewsController : Controller
+    public class NewsController : BaseController 
     {
-        private readonly AppDbContext dbContext;
-        public NewsController(AppDbContext dbcontext)
+        private INewsService NewsService;
+        public NewsController( INewsService newsService)
         {
-            dbContext = dbcontext;
+            NewsService = newsService;
         }
+
+        [Produces("application/json")]
+        [HttpPost("Create")]
         public async Task Create(NewsDTO newNews)
         {
-            if (newNews != null)
-            {
-                var createNews = new News
-                {
-                    Title = newNews.Title,
-                    Url = newNews.Url,
-                    PublishDate = newNews.PublishDate,
-                    Description = newNews.Description,
-                    NewsSiteId = newNews.NewsSiteId
-                };
-                await dbContext.News.AddAsync(createNews);
-            }
-            dbContext.SaveChanges();
+            await NewsService.Create(newNews);
         }
 
+        [Produces("application/json")]
+        [HttpPost("Delete")]
         public async Task Delete(long id)
         {
-            var delete = await dbContext.News.Where(x => x.Id == id).FirstOrDefaultAsync();
-            if (delete != null)
-            {
-                dbContext.News.Remove(delete);
-                await dbContext.SaveChangesAsync();
-            }
+            await NewsService.Delete(id);
         }
 
+        [Produces("application/json")]
+        [HttpPost("Search")]
         public async Task<List<News>> Search(string search)
         {
-            return await dbContext.News.Where(article => article.Title.Contains(search)).ToListAsync();
+            return await NewsService.Search(search);
         }
 
+        [Produces("application/json")]
+        [HttpPost("Update")]
         public async Task Update(NewsDTO updateNews)
         {
-            var oldNews = dbContext.News.Where(x => x.Id == updateNews.Id).FirstOrDefault();
-            if (oldNews != null)
-            {
-                oldNews.Title = updateNews.Title;
-                oldNews.Url = updateNews.Url;
-                oldNews.PublishDate = updateNews.PublishDate;
-                oldNews.Description = updateNews.Description;
-                oldNews.NewsSiteId = updateNews.NewsSiteId;
-
-                dbContext.Update(oldNews);
-                await dbContext.SaveChangesAsync();
-            }
+            await NewsService.Update(updateNews);
         }
     }
 }

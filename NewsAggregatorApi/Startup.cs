@@ -1,4 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using NewsAggregatorApi.Services;
+using NewsAggregatorApi.Services.Interface;
 
 namespace NewsAggregatorApi
 {
@@ -11,17 +13,18 @@ namespace NewsAggregatorApi
 
         public IConfiguration Configuration { get; }
 
-        // Этот метод вызывается во время выполнения. Используется для добавления сервисов в контейнер зависимостей.
         public void ConfigureServices(IServiceCollection services)
         {
-            // Настройка подключения к базе данных
             services.AddDbContext<AppDbContext>(options =>
                 options.UseNpgsql(Configuration.GetConnectionString("DefaultConnection")));
 
+            services.AddScoped<IRssService, RssService>();
+            services.AddScoped<INewsService, NewsService>();
+            services.AddScoped<INewsSiteService, NewsSiteService>();
+            services.AddSwaggerGen();
             services.AddControllers();
         }
 
-        // Этот метод вызывается во время выполнения. Используется для настройки конвейера HTTP-запроса.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
@@ -30,18 +33,12 @@ namespace NewsAggregatorApi
             }
             else
             {
-                // В режиме Production использовать более строгие настройки безопасности и обработки ошибок
                 app.UseExceptionHandler("/Error");
                 app.UseHsts();
             }
 
-            // Включение использования Swagger для документации API
             app.UseSwagger();
-            app.UseSwaggerUI(c =>
-            {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "News Aggregator API V1");
-                c.RoutePrefix = string.Empty;
-            });
+            app.UseSwaggerUI();
 
             app.UseHttpsRedirection();
 
